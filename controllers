@@ -1,0 +1,28 @@
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+
+export const signup = async (req, res) => {
+  try {
+    const { name, email, password, whatsappNumber } = req.body;
+    const user = new User({ name, email, password, whatsappNumber });
+    await user.save();
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
